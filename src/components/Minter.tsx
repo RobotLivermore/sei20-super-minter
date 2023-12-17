@@ -125,13 +125,13 @@ const Minter: React.FC = () => {
       <p className="text-xs mt-2 text-gray-400">打到账户没钱为止</p>
       <div>
         <textarea
-          className="mt-6 border border-black rounded-xl w-[400px] px-4 py-6 resize-none h-[200px]"
+          className="mt-6 border border-black rounded-xl w-[400px] px-4 py-6 resize-none h-[220px]"
           placeholder="请输入助记词，比如：jazz bench loan chronic ready pelican travel charge lunar pear detect couch。当有多的账号的时候，用,分割，比如:jazz bench loan chronic ready pelican travel charge lunar pear detect couch,black clay figure average spoil insane hire typical surge still brown object"
           value={mnemonic}
           onChange={(e) => setMnemonic(e.target.value)}
         />
       </div>
-      <div className="flex w-[400px] justify-center space-x-6">
+      <div className="flex w-[400px] justify-center space-x-6 mt-4">
         <button
           className="border border-black px-4 py-2 rounded-full"
           onClick={handleMint}
