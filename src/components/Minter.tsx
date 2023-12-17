@@ -10,13 +10,13 @@ import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 
 import { calculateFee } from "@cosmjs/stargate";
 
-const RPC_URL = "https://sei-rpc.polkachu.com/";
+// const RPC_URL = "https://sei-rpc.polkachu.com/";
 const REST_URL = "https://sei-api.polkachu.com/";
 
 const RPC_URL_2 = "https://sei-rpc.brocha.in/";
-const RPC_URL_3 = "https://rpc.sei-apis.com/";
-const RPC_URL_4 = "https://sei-m.rpc.n0ok.net/";
-const RPC_URL_5 = "https://sei-rpc.lavenderfive.com/";
+// const RPC_URL_3 = "https://rpc.sei-apis.com/";
+// const RPC_URL_4 = "https://sei-m.rpc.n0ok.net/";
+// const RPC_URL_5 = "https://sei-rpc.lavenderfive.com/";
 
 const generateWalletFromMnemonic = async (mnemonic: string) => {
   const wallet = await restoreWallet(mnemonic, 0);
