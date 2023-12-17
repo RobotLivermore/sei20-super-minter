@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   restoreWallet,
   getSigningCosmWasmClient,
   getQueryClient,
 } from "@sei-js/core";
+import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
+
 import { calculateFee } from "@cosmjs/stargate";
 
 const RPC_URL = "https://sei-rpc.polkachu.com/";
@@ -37,49 +39,20 @@ const Minter: React.FC = () => {
   isEndRef.current = isEnd;
   const [logs, setLogs] = useState<string[]>([]);
 
-  const handleMint = async () => {
-    setIsEnd(false);
-    setLogs((pre) => [...pre, `开始铸造`]);
-
-    // 验证助记词
-    if (!mnemonic) {
-      setLogs((pre) => [...pre, `请输入助记词`]);
-      return;
-    }
-
-    const wallet = await generateWalletFromMnemonic(mnemonic);
-
-    const accounts = await wallet.getAccounts();
-    setLogs((pre) => [...pre, `成功导入助记词`]);
-
-    console.log(accounts[0].address);
-
-    const balance = await querySeiBalance(accounts[0].address);
-    console.log(balance);
-    if (Number(balance.amount) === 0) {
-      setLogs((pre) => [...pre, `账户余额不足`]);
-      return;
-    }
-
-    const msg = {
-      p: "sei-20",
-      op: "mint",
-      tick: "seis",
-      amt: "1000",
-    };
-    const msg_base64 = btoa(`data:,${JSON.stringify(msg)}`);
-    const fee = calculateFee(100000, "0.1usei");
-
-    const signingCosmWasmClient = await getSigningCosmWasmClient(
-      RPC_URL_2,
-      wallet
-    );
-
-    const mintFn = async () => {
+  const mintFn = useCallback(
+    async (client: SigningCosmWasmClient, address: string) => {
       try {
-        const response = await signingCosmWasmClient.sendTokens(
-          accounts[0].address,
-          accounts[0].address,
+        const msg = {
+          p: "sei-20",
+          op: "mint",
+          tick: "seis",
+          amt: "1000",
+        };
+        const msg_base64 = btoa(`data:,${JSON.stringify(msg)}`);
+        const fee = calculateFee(100000, "0.1usei");
+        const response = await client.sendTokens(
+          address,
+          address,
           [{ amount: "1", denom: "usei" }],
           fee,
           msg_base64
@@ -92,16 +65,53 @@ const Minter: React.FC = () => {
         // sleep 1s
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-    };
+    },
+    []
+  );
+
+  const walletMint = useCallback(async (m: string) => {
+    const wallet = await generateWalletFromMnemonic(m);
+
+    const accounts = await wallet.getAccounts();
+    setLogs((pre) => [...pre, `成功导入钱包: ${accounts[0].address}`]);
+
+    const balance = await querySeiBalance(accounts[0].address);
+    console.log(balance);
+    if (Number(balance.amount) === 0) {
+      setLogs((pre) => [...pre, `账户余额不足`]);
+      return;
+    }
+
+    const signingCosmWasmClient = await getSigningCosmWasmClient(
+      RPC_URL_2,
+      wallet
+    );
 
     while (true) {
       if (isEndRef.current) {
         setLogs((pre) => [...pre, `暂停铸造`]);
         break;
       }
-      mintFn();
+      mintFn(signingCosmWasmClient, accounts[0].address);
       await new Promise((resolve) => setTimeout(resolve, 300));
     }
+  }, [mintFn])
+
+  const handleMint = async () => {
+    setIsEnd(false);
+    setLogs((pre) => [...pre, `开始铸造`]);
+
+    // 验证助记词
+    if (!mnemonic) {
+      setLogs((pre) => [...pre, `请输入助记词`]);
+      return;
+    }
+    const walletMnemonics = mnemonic.split(",");
+
+    for (let i = 0; i < walletMnemonics.length; i++) {
+      walletMint(walletMnemonics[i]);
+    }
+    
   };
 
   const handleEnd = () => {
@@ -116,7 +126,7 @@ const Minter: React.FC = () => {
       <div>
         <textarea
           className="mt-6 border border-black rounded-xl w-[400px] px-4 py-6 resize-none h-[200px]"
-          placeholder="请输入助记词"
+          placeholder="请输入助记词，比如：jazz bench loan chronic ready pelican travel charge lunar pear detect couch。当有多的账号的时候，用,分割，比如:jazz bench loan chronic ready pelican travel charge lunar pear detect couch,black clay figure average spoil insane hire typical surge still brown object"
           value={mnemonic}
           onChange={(e) => setMnemonic(e.target.value)}
         />
