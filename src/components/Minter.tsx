@@ -8,9 +8,13 @@ import {
 } from "@sei-js/core";
 import { calculateFee } from "@cosmjs/stargate";
 
-export const RPC_URL = "https://sei-rpc.polkachu.com/";
-export const REST_URL = "https://sei-api.polkachu.com/";
-export const NETWORK = "pacific-1";
+const RPC_URL = "https://sei-rpc.polkachu.com/";
+const REST_URL = "https://sei-api.polkachu.com/";
+
+const RPC_URL_2 = "https://sei-rpc.brocha.in/";
+const RPC_URL_3 = "https://rpc.sei-apis.com/";
+const RPC_URL_4 = "https://sei-m.rpc.n0ok.net/";
+const RPC_URL_5 = "https://sei-rpc.lavenderfive.com/";
 
 const generateWalletFromMnemonic = async (mnemonic: string) => {
   const wallet = await restoreWallet(mnemonic, 0);
@@ -67,15 +71,11 @@ const Minter: React.FC = () => {
     const fee = calculateFee(100000, "0.1usei");
 
     const signingCosmWasmClient = await getSigningCosmWasmClient(
-      RPC_URL,
+      RPC_URL_2,
       wallet
     );
 
-    while (true) {
-      if (isEndRef.current) {
-        setLogs((pre) => [...pre, `暂停铸造`]);
-        break;
-      }
+    const mintFn = async () => {
       try {
         const response = await signingCosmWasmClient.sendTokens(
           accounts[0].address,
@@ -84,11 +84,23 @@ const Minter: React.FC = () => {
           fee,
           msg_base64
         );
-        setLogs((pre) => [...pre, `铸造完成, txhash: ${response.transactionHash}`]);
+        setLogs((pre) => [
+          ...pre,
+          `铸造完成, txhash: ${response.transactionHash}`,
+        ]);
       } catch (e) {
         // sleep 1s
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
+    };
+
+    while (true) {
+      if (isEndRef.current) {
+        setLogs((pre) => [...pre, `暂停铸造`]);
+        break;
+      }
+      mintFn();
+      await new Promise((resolve) => setTimeout(resolve, 300));
     }
   };
 
