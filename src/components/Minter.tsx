@@ -92,8 +92,8 @@ const Minter: React.FC = () => {
         setLogs((pre) => [...pre, `暂停铸造`]);
         break;
       }
-      mintFn(signingCosmWasmClient, accounts[0].address);
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await mintFn(signingCosmWasmClient, accounts[0].address);
+      // await new Promise((resolve) => setTimeout(resolve, 300));
     }
   }, [mintFn])
 
